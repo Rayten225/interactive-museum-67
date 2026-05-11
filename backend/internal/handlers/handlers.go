@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/interactive-museum-67/internal/models"
@@ -179,7 +180,8 @@ func (h *Handler) CheckAnswer(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateExhibit(w http.ResponseWriter, r *http.Request) {
 	// Авторизация по Bearer-токену.
 	authHeader := r.Header.Get("Authorization")
-	if authHeader != "Bearer super-museum-secret" {
+	expectedToken := "Bearer " + os.Getenv("ADMIN_SECRET")
+	if authHeader != expectedToken {
 		http.Error(w, "Доступ запрещен. Отсутствует или недействителен токен авторизации.", http.StatusUnauthorized)
 		return
 	}
