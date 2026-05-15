@@ -31,7 +31,7 @@ function ObjectPage() {
     const { exhibit, question } = data;
 
     return (
-        <main className="container" style={{ marginTop: '40px' }}>
+        <main className="container" style={{ marginBottom: '80px', marginTop: '40px' }}>
             <section className="exhibit-detail">
                 <h1>{exhibit.title}</h1>
                 
