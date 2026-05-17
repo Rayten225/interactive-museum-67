@@ -10,7 +10,7 @@ function Header() {
                 <nav>
                     <ul className="nav-links">
                         <li><Link to="/museum">О музее</Link></li>
-                        <li><Link to="/">Коллекции</Link></li>
+                        <li><a href="/#collections">Коллекции</a></li>
                         <li><Link to="/interactive">Интерактивный музей</Link></li>
                         <li><a href="#contacts">Контакты</a></li>
                     </ul>
