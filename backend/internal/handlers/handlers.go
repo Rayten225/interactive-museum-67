@@ -161,7 +161,7 @@ func (h *Handler) CheckAnswer(w http.ResponseWriter, r *http.Request) {
 
 	if isCorrect {
 		resp["points"] = points
-		resp["message"] = "Верный ответ. Баллы начислены."
+		resp["message"] = "Верный ответ"
 	} else {
 		resp["points"] = 0
 		resp["message"] = "Ответ неверный. Попробуйте еще раз."
