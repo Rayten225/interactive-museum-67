@@ -3,6 +3,8 @@ package main
 
 import (
 	"database/sql"
+	"encoding/base64" // Для конвертации картинки в текст
+	"fmt"             // Для форматирования строк
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +12,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/interactive-museum-67/internal/handlers"
 	"github.com/joho/godotenv"
+	"github.com/skip2/go-qrcode" // Наша новая библиотека
 )
 
 func main() {
@@ -117,17 +120,41 @@ func seedData(db *sql.DB) {
 	}
 	log.Println("✅ Экспонаты успешно добавлены.")
 
-	// 2. ГЕНЕРИРУЕМ QR-КОДЫ ПРЯМО В БАЗЕ (Хитрый SQL-трюк)
+	// 2. ГЕНЕРИРУЕМ ЛОКАЛЬНЫЕ QR-КОДЫ (ДИНАМИЧЕСКИ ДЛЯ ВСЕХ)
 	frontendURL := os.Getenv("FRONTEND_URL")
 	if frontendURL == "" {
 		frontendURL = "http://localhost:3000"
 	}
 
-	queryQR := `UPDATE exhibits SET qr_code = CONCAT('https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=', ?, '/exhibit/', id)`
-	if _, err := db.Exec(queryQR, frontendURL); err != nil {
-		log.Println("❌ Ошибка генерации QR-кодов:", err)
+	// Делаем запрос к базе: получаем ID всех экспонатов
+	rows, err := db.Query("SELECT id FROM exhibits")
+	if err != nil {
+		log.Println("❌ Ошибка при получении экспонатов для генерации QR:", err)
 	} else {
-		log.Println("✅ QR-коды для всех экспонатов сгенерированы.")
+		defer rows.Close()
+
+		for rows.Next() {
+			var id int
+			if err := rows.Scan(&id); err != nil {
+				continue
+			}
+
+			targetURL := fmt.Sprintf("%s/exhibit/%d", frontendURL, id)
+
+			png, err := qrcode.Encode(targetURL, qrcode.Medium, 256)
+			if err != nil {
+				log.Printf("❌ Ошибка генерации QR для ID %d: %v\n", id, err)
+				continue
+			}
+
+			base64QR := "data:image/png;base64," + base64.StdEncoding.EncodeToString(png)
+
+			_, err = db.Exec("UPDATE exhibits SET qr_code = ? WHERE id = ?", base64QR, id)
+			if err != nil {
+				log.Printf("❌ Ошибка сохранения QR для ID %d: %v\n", id, err)
+			}
+		}
+		log.Println("✅ Локальные QR-коды успешно сгенерированы для всех загруженных экспонатов.")
 	}
 
 	// 3. ВСТАВЛЯЕМ ВОПРОСЫ
@@ -158,15 +185,15 @@ func seedData(db *sql.DB) {
 // InitDB применяет схему базы данных.
 func InitDB(db *sql.DB) {
 	queryExhibits := `
-	CREATE TABLE IF NOT EXISTS exhibits (
-		id INT AUTO_INCREMENT PRIMARY KEY,
-		title VARCHAR(255) NOT NULL,
-		short_description TEXT,
-		full_description LONGTEXT,
-		main_image VARCHAR(500),
-		qr_code VARCHAR(255),
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	);`
+		CREATE TABLE IF NOT EXISTS exhibits (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			title VARCHAR(255) NOT NULL,
+			short_description TEXT,
+			full_description LONGTEXT,
+			main_image VARCHAR(500),
+			qr_code TEXT,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);`
 	if _, err := db.Exec(queryExhibits); err != nil {
 		log.Fatal("❌ Ошибка инициализации таблицы exhibits: ", err)
 	}
