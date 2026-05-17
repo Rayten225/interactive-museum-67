@@ -43,24 +43,23 @@ function ObjectPage() {
                             className="img-fluid" 
                             style={{ borderRadius: '10px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}
                         />
-                    </div>
-
-                    <div style={{ flex: '1.5' }}>
-                        <h3>Описание</h3>
-                        <p style={{ fontSize: '18px', lineHeight: '1.6' }}>
-                            {exhibit.full_description}
-                        </p>
-                        
-                        <p style={{ fontStyle: 'italic', color: '#666' }}>
+                        <p style={{ fontStyle: 'italic', color: '#ffffff', marginTop: '30px'}}>
                             {exhibit.short_description}
                         </p>
 
                         {exhibit.qr_code && (
-                            <div style={{ marginTop: '20px' }}>
+                            <div style={{ marginTop: '20px'}}>
                                 <h5>QR-код экспоната:</h5>
                                 <img src={exhibit.qr_code} alt="QR Code" width="120" />
                             </div>
                         )}
+                    </div>
+
+                    <div style={{ flex: '1.5' }}>
+                        <h3>Описание</h3>
+                        <p style={{ fontSize: '18px', lineHeight: '1.6', textAlign: 'justify' }}>
+                            {exhibit.full_description}
+                        </p>
                     </div>
                 </div>
             </section>
