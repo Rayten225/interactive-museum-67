@@ -1,4 +1,28 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+
 function Interactive() {
+    const [exhibits, setExhibits] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch('/api/exhibits') 
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка при загрузке данных');
+                }
+                return response.json();
+            })
+            .then(data => {
+                setExhibits(data || []);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error("Ошибка загрузки экспонатов:", error);
+                setLoading(false);
+            });
+    }, []);
+
     return (
         <main className="container">
             <h1 style={{ textAlign: 'center', marginTop: '40px' }}>Интерактивный музей</h1>
@@ -19,17 +43,30 @@ function Interactive() {
             </section>
 
             <section className="virtual-exhibitions">
-                <h2>Виртуальные выставки</h2>
+                <h2>Наши экспонаты</h2>
                 <section className="block-split3">
                     <div>
                         <img src="/img/alarm.png" alt="Фото будильника" className="img-fluid" />
                     </div>
-                    <ul>
-                        <li><a href="#">Виртуальная выставка «Семейная реликвия»</a></li>
-                        <li><a href="#">Виртуальная выставка «Экспонаты из запасников: новинки 2021 года»</a></li>
-                        <li><a href="#">Виртуальная выставка «Птицы красной книги Курганской области»</a></li>
-                        <li><a href="#">Виртуальная выставка «Путешествие в юность»</a></li>
-                    </ul>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        {loading ? (
+                            <p>Загрузка экспонатов...</p>
+                        ) : exhibits.length > 0 ? (
+                            <ul>
+                                {exhibits.map((exhibit) => (
+                                    <li key={exhibit.ID || exhibit.id}>
+                                        <Link to={`/exhibit/${exhibit.ID || exhibit.id}`}>
+                                            {exhibit.Title || exhibit.title}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>Экспонатов пока нет.</p>
+                        )}
+                    </div>
+
                     <div>
                         <img src="/img/dress.png" alt="Фото платья" className="img-fluid" />
                     </div>
