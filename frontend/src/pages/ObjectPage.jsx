@@ -160,7 +160,7 @@ function ObjectPage() {
                 {checkResult && (
                   <div className={`game-result ${checkResult.is_correct ? 'game-result-success' : 'game-result-error'}`}>
                     <h5 className={checkResult.is_correct ? 'game-result-msg-success' : 'game-result-msg-error'}>
-                      Ответ верный!
+                      {checkResult.message}
                     </h5>
 
                     {!checkResult.is_correct && checkResult.hint && (
